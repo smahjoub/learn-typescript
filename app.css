@@ -55,6 +55,12 @@ button:active {
   border-color: #a80041;
 }
 
+.project-form {
+  margin: 2rem 1rem 1rem 1rem;
+  padding: 1rem;
+  border: 1px solid #ff0062;
+}
+
 .projects {
   margin: 1rem;
   border: 1px solid #ff0062;
@@ -91,6 +97,7 @@ button:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.26);
   padding: 1rem;
   margin: 1rem;
+  background: white;
 }
 
 .projects li h2 {
