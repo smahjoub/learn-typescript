@@ -57,6 +57,20 @@ class ProjectState extends State<Project> {
     }
   }
 
+  moveProject(projectId: string, newStatus: ProjectStatus) {
+    const project = this.projects.find(prj => prj.id === projectId);
+    if (project && project.status !== newStatus) {
+      project.status = newStatus;
+      this.updateListeners();
+    }
+  }
+
+  private updateListeners() {
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
+
   static getInstance() {
     if (!this.instance) {
       this.instance = new ProjectState();
@@ -153,7 +167,7 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     );
     this.element = importedNode.firstElementChild as U;
     if (newElementId) {
-      this.element.id = `${newElementId}-projects`;
+      this.element.id = `${newElementId}`;
     }
 
     this.attach(insertAtStart);
@@ -191,7 +205,8 @@ class ProjectItem
 
   @autobind
   dragStartHandler(event: DragEvent) {
-    console.log(event);
+    event.dataTransfer!.setData('text/plain', this.project.id);
+    event.dataTransfer!.effectAllowed = 'move';
   }
 
   dragEndHandler(_: DragEvent) {
@@ -225,17 +240,27 @@ class ProjectList
   }
 
   @autobind
-  dragOverHandler(_: DragEvent) {
-    const listEl = this.element.querySelector("ul")!;
-    listEl.classList.add("droppable");
+  dragOverHandler(event: DragEvent) {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const listEl = this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
   }
 
-  dropHandler(_: DragEvent) {}
+  @autobind
+  dropHandler(event: DragEvent) {
+    const prjId = event.dataTransfer!.getData('text/plain');
+    projectState.moveProject(
+      prjId,
+      this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished
+    );
+  }
 
   @autobind
   dragLeaveHandler(_: DragEvent) {
-    const listEl = this.element.querySelector("ul")!;
-    listEl.classList.remove("droppable");
+    const listEl = this.element.querySelector('ul')!;
+    listEl.classList.remove('droppable');
   }
 
   private renderProjects() {
