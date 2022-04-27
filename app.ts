@@ -1,40 +1,53 @@
-// Project State Management
+// Project Type
+enum ProjectStatus {
+  Active,
+  Finished,
+}
 
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus
+  ) {}
+}
+
+// Project State Management
+type Listener = (items: Project[]) => void
 class ProjectState {
-  private listeners: any[] = [];
-  private projects: any[] = [];
+  private listeners: Listener[] = [];
+  private projects: Project[] = [];
   private static instance: ProjectState;
 
-  private constructor(){
-
-  }
-  addProject(title: string, description: string, numOfPeople: number){
-    const newProject = {
-      id: Math.random().toString(),
-      title: title,
-      description: description,
-      people: numOfPeople
-    }
+  private constructor() {}
+  addProject(title: string, description: string, numOfPeople: number) {
+    const newProject = new Project(
+      Math.random().toString(),
+      title,
+      description,
+      numOfPeople,
+      ProjectStatus.Active
+    );
 
     this.projects.push(newProject);
-    for(const listernerFn of this.listeners){
+    for (const listernerFn of this.listeners) {
       listernerFn(this.projects.slice());
     }
   }
 
-  static getInstance(){
-    if(!this.instance){
+  static getInstance() {
+    if (!this.instance) {
       this.instance = new ProjectState();
     }
     return this.instance;
   }
 
-  addListeners(listenerFn: Function){
+  addListeners(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
-
 }
-
 
 const projectState = ProjectState.getInstance();
 
@@ -107,7 +120,7 @@ class ProjectList {
   element: HTMLElement;
   assignedProjects: any[];
 
-  constructor(private type: 'active' | 'finished') {
+  constructor(private type: "active" | "finished") {
     this.assignedProjects = [];
     this.templateElement = document.getElementById(
       "project-list"
@@ -119,21 +132,23 @@ class ProjectList {
       true
     );
     this.element = importedNode.firstElementChild as HTMLElement;
-    this.element.id =  `${this.type}-projects`;
+    this.element.id = `${this.type}-projects`;
 
-    projectState.addListeners((projects: any[]) => {
+    projectState.addListeners((projects: Project[]) => {
       this.assignedProjects = projects;
       this.renderProjects();
     });
 
-    this.attach()
+    this.attach();
     this.renderContent();
   }
 
-  private renderProjects(){
-    const listEl = document.getElementById(`${this.type}-projects-list`) as HTMLUListElement;
-    for(const prjItem of this.assignedProjects){
-      const listItem = document.createElement('li');
+  private renderProjects() {
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`
+    ) as HTMLUListElement;
+    for (const prjItem of this.assignedProjects) {
+      const listItem = document.createElement("li");
       listItem.textContent = prjItem.title;
       listEl.appendChild(listItem);
     }
@@ -141,12 +156,13 @@ class ProjectList {
 
   private renderContent() {
     const listId = `${this.type}-projects-list`;
-    this.element.querySelector('ul')!.id = listId;
-    this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS';
+    this.element.querySelector("ul")!.id = listId;
+    this.element.querySelector("h2")!.textContent =
+      this.type.toUpperCase() + " PROJECTS";
   }
 
-  private attach(){
-    this.hostElement.insertAdjacentElement('beforeend', this.element);
+  private attach() {
+    this.hostElement.insertAdjacentElement("beforeend", this.element);
   }
 }
 
@@ -231,7 +247,7 @@ class ProjectInput {
     const userInput = this.gatherUserInput();
     if (Array.isArray(userInput)) {
       const [title, description, people] = userInput;
-      
+
       projectState.addProject(title, description, people);
       this.clearInput();
     }
@@ -247,5 +263,5 @@ class ProjectInput {
 }
 
 const prjInput = new ProjectInput();
-const activePrjList = new ProjectList('active');
-const finishedPrjList = new ProjectList('finished');
+const activePrjList = new ProjectList("active");
+const finishedPrjList = new ProjectList("finished");
